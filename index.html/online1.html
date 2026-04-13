@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Secure Online Voting System</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f7f7f7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+.container {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    width: 320px;
+    text-align: center;
+}
+input[type="text"], input[type="password"] {
+    display: block;
+    margin: 10px auto;
+    padding: 10px;
+    width: 90%;
+}
+button {
+    padding: 10px 20px;
+    margin-top: 10px;
+}
+nav a {
+    margin: 0 5px;
+    text-decoration: none;
+    color: #333;
+}
+nav a:hover {
+    text-decoration: underline;
+}
+.hidden { display: none; }
+.info { font-size: 14px; color: #555; margin-top: 5px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Home Page -->
+    <div id="homePage">
+        <h1>Welcome to Secure Voting</h1>
+        <nav>
+            <a href="#" onclick="showPage('register')">Register</a>|
+            <a href="#" onclick="showPage('login')">Login</a>|
+            <a href="#" onclick="showPage('results')">Results</a>
+        </nav>
+    </div>
+
+    <!-- Registration Page -->
+    <div id="registerPage" class="hidden">
+        <h2>Register</h2>
+        <input type="text" id="regUsername" placeholder="Username">
+        <input type="password" id="regPassword" placeholder="Password">
+        <button onclick="registerUser()">Register</button>
+        <p id="regMessage" class="info"></p>
+        <p><a href="#" onclick="showPage('login')">Already registered? Login</a></p>
+    </div>
+
+    <!-- Login Page -->
+    <div id="loginPage" class="hidden">
+        <h2>Login</h2>
+        <input type="text" id="loginUsername" placeholder="Username">
+        <input type="password" id="loginPassword" placeholder="Password">
+        <button onclick="loginUser()">Login</button>
+        <p id="loginMessage" class="info"></p>
+        <p><a href="#" onclick="showPage('register')">Don't have an account? Register</a></p>
+    </div>
+
+    <!-- Vote Page -->
+    <div id="votePage" class="hidden">
+        <h2>Cast Your Vote</h2>
+        <p id="currentUser"></p>
+        <div id="voteSection">
+            <label><input type="radio" name="candidate" value="Alice"> Alice</label><br>
+            <label><input type="radio" name="candidate" value="Bob"> Bob</label><br>
+            <button onclick="castVote()">Vote</button>
+        </div>
+        <p id="voteMessage" class="info"></p>
+        <p><a href="#" onclick="showPage('results')">View Results</a></p>
+        <p><a href="#" onclick="logoutUser()">Logout</a></p>
+    </div>
+
+    <!-- Results Page -->
+    <div id="resultsPage" class="hidden">
+        <h2>Voting Results</h2>
+        <p id="resultsText"></p>
+        <p><a href="#" onclick="showPage('home')">Home</a></p>
+    </div>
+
+</div>
+
+<script>
+// --- Utility: Simple hash function ---
+function hashString(str){
+    let hash = 0;
+    for(let i=0;i<str.length;i++){
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash = hash & hash;
+    }
+    return hash.toString();
+}
+
+// --- Pages ---
+function showPage(page){
+    ['homePage','registerPage','loginPage','votePage','resultsPage'].forEach(p=>document.getElementById(p).classList.add('hidden'));
+    if(page==='home') document.getElementById('homePage').classList.remove('hidden');
+    else if(page==='register') document.getElementById('registerPage').classList.remove('hidden');
+    else if(page==='login') document.getElementById('loginPage').classList.remove('hidden');
+    else if(page==='vote'){
+        document.getElementById('votePage').classList.remove('hidden');
+        const user = localStorage.getItem('currentUser');
+        document.getElementById('currentUser').innerText = "Logged in as: "+user;
+        checkVoted(user);
+    }
+    else if(page==='results'){
+        document.getElementById('resultsPage').classList.remove('hidden');
+        showResults();
+    }
+}
+
+// --- Users ---
+function getUsers(){ return JSON.parse(localStorage.getItem('users')||'{}'); }
+function saveUsers(users){ localStorage.setItem('users', JSON.stringify(users)); }
+
+// --- Registration ---
+function registerUser(){
+    const u = document.getElementById('regUsername').value.trim();
+    const p = document.getElementById('regPassword').value.trim();
+    const msg = document.getElementById('regMessage');
+    if(!u||!p){ msg.innerText='Fill all fields'; return; }
+    const users = getUsers();
+    if(users[u]){ msg.innerText='Username exists!'; return; }
+    users[u] = {password: hashString(p), voted: false};
+    saveUsers(users);
+    msg.innerText = 'Registered successfully! Login now.';
+}
+
+// --- Login ---
+function loginUser(){
+    const u = document.getElementById('loginUsername').value.trim();
+    const p = document.getElementById('loginPassword').value.trim();
+    const msg = document.getElementById('loginMessage');
+    const users = getUsers();
+    if(users[u] && users[u].password === hashString(p)){
+        localStorage.setItem('currentUser', u);
+        showPage('vote');
+    } else { msg.innerText='Invalid credentials!'; }
+}
+
+// --- Logout ---
+function logoutUser(){
+    localStorage.removeItem('currentUser');
+    showPage('home');
+}
+
+// --- Vote ---
+function checkVoted(user){
+    const users = getUsers();
+    if(users[user] && users[user].voted){
+        document.getElementById('voteSection').style.display = 'none';
+        document.getElementById('voteMessage').innerText = 'You already voted!';
+    } else {
+        document.getElementById('voteSection').style.display = 'block';
+        document.getElementById('voteMessage').innerText = '';
+    }
+}
+
+function castVote(){
+    const candidate = document.querySelector('input[name="candidate"]:checked');
+    const user = localStorage.getItem('currentUser');
+    const msg = document.getElementById('voteMessage');
+    if(!user){ alert('Login first!'); return; }
+    const users = getUsers();
+    if(users[user].voted){ msg.innerText='You already voted'; return; }
+    if(!candidate){ msg.innerText='Select a candidate'; return; }
+
+    const votes = JSON.parse(localStorage.getItem('votes') || '{"Alice":0,"Bob":0}');
+    votes[candidate.value]++;
+    localStorage.setItem('votes', JSON.stringify(votes));
+
+    users[user].voted = true;
+    saveUsers(users);
+
+    msg.innerText='Vote cast successfully!';
+    checkVoted(user);
+}
+
+// --- Results ---
+function showResults(){
+    const votes = JSON.parse(localStorage.getItem('votes') || '{"Alice":0,"Bob":0}');
+    document.getElementById('resultsText').innerHTML = `Alice: ${votes.Alice} votes<br>Bob: ${votes.Bob} votes`;
+}
+
+// --- Start ---
+showPage('home');
+</script>
+</body>
+</html>

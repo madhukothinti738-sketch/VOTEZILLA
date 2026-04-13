@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Online Voting System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        nav a { margin: 0 10px; text-decoration: none; color: blue; }
+        section { display: none; }
+        section.active { display: block; }
+        input[type="text"], input[type="password"] { width: 200px; padding: 5px; margin: 5px 0; }
+        button { padding: 5px 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>Online Voting System</h1>
+
+    <nav>
+        <a href="#" onclick="showSection('home')">Home</a>
+        <a href="#" onclick="showSection('login')">Login</a>
+        <a href="#" onclick="showSection('register')">Register</a>
+        <a href="#" onclick="showSection('vote')">Cast Vote</a>
+        <a href="#" onclick="showSection('results')">Results</a>
+    </nav>
+
+    <!-- Home Section -->
+    <section id="home" class="active">
+        <h2>Welcome to Online Voting</h2>
+        <p>Please login or register to participate in the voting process.</p>
+    </section>
+
+    <!-- Login Section -->
+    <section id="login">
+        <h2>Login</h2>
+        <form onsubmit="alert('Login functionality not implemented'); return false;">
+            <label>Username:</label><br>
+            <input type="text" required><br>
+            <label>Password:</label><br>
+            <input type="password" required><br><br>
+            <button type="submit">Login</button>
+        </form>
+        <p>Don't have an account? <a href="#" onclick="showSection('register')">Register here</a></p>
+    </section>
+
+    <!-- Registration Section -->
+    <section id="register">
+        <h2>Register</h2>
+        <form onsubmit="alert('Registration functionality not implemented'); return false;">
+            <label>Full Name:</label><br>
+            <input type="text" required><br>
+            <label>Username:</label><br>
+            <input type="text" required><br>
+            <label>Password:</label><br>
+            <input type="password" required><br><br>
+            <button type="submit">Register</button>
+        </form>
+        <p>Already have an account? <a href="#" onclick="showSection('login')">Login here</a></p>
+    </section>
+
+    <!-- Vote Section -->
+    <section id="vote">
+        <h2>Cast Your Vote</h2>
+        <form onsubmit="alert('Vote submitted!'); return false;">
+            <p>Select your candidate:</p>
+            <input type="radio" name="candidate" value="Candidate 1" required> Candidate 1<br>
+            <input type="radio" name="candidate" value="Candidate 2"> Candidate 2<br>
+            <input type="radio" name="candidate" value="Candidate 3"> Candidate 3<br><br>
+            <button type="submit">Submit Vote</button>
+        </form>
+    </section>
+
+    <!-- Results Section -->
+    <section id="results">
+        <h2>Voting Results</h2>
+        <ul>
+            <li>Candidate 1: 50 votes</li>
+            <li>Candidate 2: 30 votes</li>
+            <li>Candidate 3: 20 votes</li>
+        </ul>
+    </section>
+
+    <script>
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
+            // Show the selected section
+            document.getElementById(sectionId).classList.add('active');
+        }
+    </script>
+
+</body>
+</html>
